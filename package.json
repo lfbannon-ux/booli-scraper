@@ -1,0 +1,33 @@
+{
+  "name": "booli-scraper",
+  "version": "1.0.0",
+  "description": "Daily web scraper for Booli.se housing statistics with weekly email reports",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": ["scraper", "booli", "housing", "email"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "node-cron": "^3.0.3",
+    "playwright": "^1.41.0",
+    "better-sqlite3": "^9.3.0",
+    "nodemailer": "^6.9.8",
+    "dotenv": "^16.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/node-cron": "^3.0.11",
+    "@types/better-sqlite3": "^7.6.8",
+    "@types/nodemailer": "^6.4.14",
+    "typescript": "^5.3.3",
+    "tsx": "^4.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
