@@ -28,13 +28,15 @@ RUN apt-get update && apt-get install -y \
 
 COPY package*.json ./
 
-RUN npm install --omit=dev
+RUN npm install
 
 RUN npx playwright install chromium
 
 COPY . .
 
 RUN npm run build
+
+RUN npm prune --production
 
 RUN mkdir -p data
 
