@@ -31,26 +31,27 @@ export async function scrapeBooli(): Promise<ScrapedData> {
 
     console.log('Looking for housing data...');
     
-    // Try multiple selectors to find the data
-    let forSaleText = null;
-    let soonToBeSoldText = null;
-
-    try {
-      forSaleText = await page.locator('text=/till salu/i').first().textContent({ timeout: 10000 });
-    } catch (e) {
-      console.log('Could not find "till salu" text, trying English...');
-      forSaleText = await page.locator('text=/for sale/i').first().textContent({ timeout: 10000 });
+    // Look for the text that contains both numbers
+    // Format: "50 803 till salu och 35 547 snart till salu"
+    const fullText = await page.locator('text=/till salu och.*snart till salu/i').first().textContent({ timeout: 10000 });
+    
+    console.log(`Found text: ${fullText}`);
+    
+    if (!fullText) {
+      throw new Error('Could not find housing statistics on page');
     }
 
-    try {
-      soonToBeSoldText = await page.locator('text=/snart till salu/i').first().textContent({ timeout: 10000 });
-    } catch (e) {
-      console.log('Could not find "snart till salu" text, trying English...');
-      soonToBeSoldText = await page.locator('text=/soon to be sold/i').first().textContent({ timeout: 10000 });
+    // Extract both numbers from the text
+    // Format: "50 803 till salu och 35 547 snart till salu"
+    const numbers = fullText.match(/[\d\s]+/g);
+    
+    if (!numbers || numbers.length < 2) {
+      throw new Error(`Could not extract numbers from text: "${fullText}"`);
     }
 
-    const forSale = extractNumber(forSaleText || '');
-    const soonToBeSold = extractNumber(soonToBeSoldText || '');
+    // Clean and parse numbers (remove spaces)
+    const forSale = parseInt(numbers[0].replace(/\s/g, ''), 10);
+    const soonToBeSold = parseInt(numbers[1].replace(/\s/g, ''), 10);
 
     console.log(`Scraped data: For sale=${forSale}, Soon to be sold=${soonToBeSold}`);
 
