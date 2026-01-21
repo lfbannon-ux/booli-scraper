@@ -20,15 +20,34 @@ export async function scrapeBooli(): Promise<ScrapedData> {
 
     const page = await context.newPage();
 
+    console.log('Navigating to Booli.se...');
     await page.goto('https://www.booli.se/sok/till-salu', {
-      waitUntil: 'networkidle',
-      timeout: 30000,
+      waitUntil: 'domcontentloaded',
+      timeout: 60000,
     });
 
-    await page.waitForTimeout(2000);
+    console.log('Waiting for page to load...');
+    await page.waitForTimeout(5000);
 
-    const forSaleText = await page.locator('text=/for sale/i').first().textContent();
-    const soonToBeSoldText = await page.locator('text=/soon to be sold/i').first().textContent();
+    console.log('Looking for housing data...');
+    
+    // Try multiple selectors to find the data
+    let forSaleText = null;
+    let soonToBeSoldText = null;
+
+    try {
+      forSaleText = await page.locator('text=/till salu/i').first().textContent({ timeout: 10000 });
+    } catch (e) {
+      console.log('Could not find "till salu" text, trying English...');
+      forSaleText = await page.locator('text=/for sale/i').first().textContent({ timeout: 10000 });
+    }
+
+    try {
+      soonToBeSoldText = await page.locator('text=/snart till salu/i').first().textContent({ timeout: 10000 });
+    } catch (e) {
+      console.log('Could not find "snart till salu" text, trying English...');
+      soonToBeSoldText = await page.locator('text=/soon to be sold/i').first().textContent({ timeout: 10000 });
+    }
 
     const forSale = extractNumber(forSaleText || '');
     const soonToBeSold = extractNumber(soonToBeSoldText || '');
