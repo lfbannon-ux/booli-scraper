@@ -37,13 +37,10 @@ async function runWeeklyReport(): Promise<void> {
   try {
     console.log(`[${new Date().toISOString()}] Starting weekly report...`);
 
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const startDate = sevenDaysAgo.toISOString().split('T')[0];
+    // Get ALL snapshots instead of just the last 7 days
+    const snapshots = db.getAllSnapshots();
 
-    const snapshots = db.getSnapshotsSince(startDate);
-
-    console.log(`Found ${snapshots.length} snapshots since ${startDate}`);
+    console.log(`Found ${snapshots.length} total snapshots`);
 
     await sendWeeklyReport(snapshots);
 
