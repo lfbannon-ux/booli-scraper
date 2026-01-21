@@ -6,6 +6,8 @@ export interface BooliSnapshot {
   date: string;
   forSale: number;
   soonToBeSold: number;
+  hemnetForSale?: number;
+  hemnetComing?: number;
   createdAt?: string;
 }
 
@@ -30,6 +32,8 @@ class BooliDatabase {
         date TEXT NOT NULL UNIQUE,
         forSale INTEGER NOT NULL,
         soonToBeSold INTEGER NOT NULL,
+        hemnetForSale INTEGER,
+        hemnetComing INTEGER,
         createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -39,15 +43,21 @@ class BooliDatabase {
 
   insertSnapshot(snapshot: BooliSnapshot): void {
     const stmt = this.db.prepare(`
-      INSERT OR REPLACE INTO snapshots (date, forSale, soonToBeSold)
-      VALUES (?, ?, ?)
+      INSERT OR REPLACE INTO snapshots (date, forSale, soonToBeSold, hemnetForSale, hemnetComing)
+      VALUES (?, ?, ?, ?, ?)
     `);
-    stmt.run(snapshot.date, snapshot.forSale, snapshot.soonToBeSold);
+    stmt.run(
+      snapshot.date,
+      snapshot.forSale,
+      snapshot.soonToBeSold,
+      snapshot.hemnetForSale || null,
+      snapshot.hemnetComing || null
+    );
   }
 
   getSnapshotsSince(startDate: string): BooliSnapshot[] {
     const stmt = this.db.prepare(`
-      SELECT id, date, forSale, soonToBeSold, createdAt
+      SELECT id, date, forSale, soonToBeSold, hemnetForSale, hemnetComing, createdAt
       FROM snapshots
       WHERE date >= ?
       ORDER BY date ASC
@@ -57,7 +67,7 @@ class BooliDatabase {
 
   getAllSnapshots(): BooliSnapshot[] {
     const stmt = this.db.prepare(`
-      SELECT id, date, forSale, soonToBeSold, createdAt
+      SELECT id, date, forSale, soonToBeSold, hemnetForSale, hemnetComing, createdAt
       FROM snapshots
       ORDER BY date DESC
     `);
@@ -66,7 +76,7 @@ class BooliDatabase {
 
   getLatestSnapshot(): BooliSnapshot | undefined {
     const stmt = this.db.prepare(`
-      SELECT id, date, forSale, soonToBeSold, createdAt
+      SELECT id, date, forSale, soonToBeSold, hemnetForSale, hemnetComing, createdAt
       FROM snapshots
       ORDER BY date DESC
       LIMIT 1
