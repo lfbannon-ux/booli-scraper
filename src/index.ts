@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import cron from 'node-cron';
 import BooliDatabase from './database';
-import { scrapeBooli, createSnapshot } from './scraper';
+import { scrapeAll } from './scraper';
 import { sendWeeklyReport } from './email';
 
 const db = new BooliDatabase();
@@ -10,13 +10,24 @@ async function runDailyScrape(): Promise<void> {
   try {
     console.log(`[${new Date().toISOString()}] Starting daily scrape...`);
 
-    const data = await scrapeBooli();
-    const snapshot = createSnapshot(data);
+    const data = await scrapeAll();
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+
+    const snapshot = {
+      date: dateStr,
+      forSale: data.booli.forSale,
+      soonToBeSold: data.booli.soonToBeSold,
+      hemnetForSale: data.hemnet.forSale,
+      hemnetComing: data.hemnet.coming,
+    };
 
     db.insertSnapshot(snapshot);
 
     console.log(`[${new Date().toISOString()}] Scrape completed successfully!`);
-    console.log(`Saved: Date=${snapshot.date}, For Sale=${snapshot.forSale}, Soon to be Sold=${snapshot.soonToBeSold}`);
+    console.log(`Saved: Date=${snapshot.date}`);
+    console.log(`  Booli: For Sale=${snapshot.forSale}, Soon to be Sold=${snapshot.soonToBeSold}`);
+    console.log(`  Hemnet: For Sale=${snapshot.hemnetForSale}, Coming=${snapshot.hemnetComing}`);
   } catch (error) {
     console.error(`[${new Date().toISOString()}] Error during daily scrape:`, error);
   }
