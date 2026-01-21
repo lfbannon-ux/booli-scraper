@@ -33,7 +33,10 @@ function generateHtmlTable(snapshots: BooliSnapshot[]): string {
     return '<p>No data available for this period.</p>';
   }
 
-  const rows = snapshots.map(snapshot => `
+  // Reverse to show oldest to newest (since getAllSnapshots returns DESC order)
+  const sortedSnapshots = [...snapshots].reverse();
+
+  const rows = sortedSnapshots.map(snapshot => `
     <tr>
       <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">${snapshot.date}</td>
       <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">${snapshot.forSale.toLocaleString()}</td>
@@ -70,9 +73,12 @@ function generateTextTable(snapshots: BooliSnapshot[]): string {
     return 'No data available for this period.';
   }
 
+  // Reverse to show oldest to newest
+  const sortedSnapshots = [...snapshots].reverse();
+
   const header = 'Date       | Booli For Sale | Booli Coming | Hemnet For Sale | Hemnet Coming\n' +
                  '-----------|----------------|--------------|-----------------|---------------';
-  const rows = snapshots.map(snapshot =>
+  const rows = sortedSnapshots.map(snapshot =>
     `${snapshot.date} | ${snapshot.forSale.toString().padStart(14)} | ${snapshot.soonToBeSold.toString().padStart(12)} | ${(snapshot.hemnetForSale || 0).toString().padStart(15)} | ${(snapshot.hemnetComing || 0).toString().padStart(13)}`
   ).join('\n');
 
@@ -92,18 +98,18 @@ export async function sendWeeklyReport(snapshots: BooliSnapshot[]): Promise<void
     },
   });
 
-  const startDate = snapshots.length > 0 ? snapshots[0].date : 'N/A';
-  const endDate = snapshots.length > 0 ? snapshots[snapshots.length - 1].date : 'N/A';
+  const startDate = snapshots.length > 0 ? snapshots[snapshots.length - 1].date : 'N/A'; // Oldest date
+  const endDate = snapshots.length > 0 ? snapshots[0].date : 'N/A'; // Newest date (getAllSnapshots returns DESC order)
 
-  const subject = `Booli & Hemnet Weekly Report (${startDate} to ${endDate})`;
+  const subject = `Booli & Hemnet Report - All Data (${startDate} to ${endDate})`;
 
   const htmlContent = `
     <html>
       <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5;">
         <div style="max-width: 800px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-          <h1 style="color: #333; text-align: center;">Booli & Hemnet Weekly Housing Report</h1>
+          <h1 style="color: #333; text-align: center;">Booli & Hemnet Housing Report - All Data</h1>
           <p style="color: #666; text-align: center; font-size: 16px;">
-            Data from ${startDate} to ${endDate}
+            Complete data from ${startDate} to ${endDate} (${snapshots.length} data points)
           </p>
           ${generateHtmlTable(snapshots)}
           <div style="margin-top: 30px; padding: 15px; background-color: #f9f9f9; border-radius: 5px;">
@@ -117,8 +123,8 @@ export async function sendWeeklyReport(snapshots: BooliSnapshot[]): Promise<void
   `;
 
   const textContent = `
-Booli & Hemnet Weekly Housing Report
-Data from ${startDate} to ${endDate}
+Booli & Hemnet Housing Report - All Data
+Complete data from ${startDate} to ${endDate} (${snapshots.length} data points)
 
 ${generateTextTable(snapshots)}
 
